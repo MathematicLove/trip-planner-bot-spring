@@ -1,25 +1,31 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val springVersion = "6.1.5"
+
+// keep Spring versions in sync with Spring Boot
+val springVersion = "6.2.0"
 val modulithVer = "1.1.1"
 
 plugins {
-    id("org.springframework.boot") version "3.2.0"
-    id("io.spring.dependency-management") version "1.1.4"
+    id("org.springframework.boot") version "3.4.0"
+    id("io.spring.dependency-management") version "1.1.6"
     id("java")
     id("application") // оставить!
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "9.3.2"
 }
 
 group = "org.tripplanner"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_22
+// compile for Java 21 so the runtime can execute the classes
+java.sourceCompatibility = JavaVersion.VERSION_21
+java.targetCompatibility = JavaVersion.VERSION_21
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    // the spring-boot-starter pulled in by modulith starter already brings a
+    // managed Spring Framework version; the explicit Spring artifacts can often
+    // be removed, but keeping them here for clarity and consistent versioning
     implementation("org.springframework:spring-core:$springVersion")
     implementation("org.springframework:spring-context:$springVersion")
     implementation("org.springframework:spring-web:$springVersion")
@@ -45,9 +51,11 @@ dependencies {
     // Тесты
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework:spring-test:$springVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    // use the full JUnit Jupiter bundle, which includes API, engine, and launcher
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation("io.projectreactor:reactor-test")
+    // include the JUnit Platform launcher so Gradle can start the testing engine
+    testImplementation("org.junit.platform:junit-platform-launcher:1.10.2")
 
     implementation("org.telegram:telegrambots:6.7.0")
     implementation("org.telegram:telegrambots-meta:6.7.0")
