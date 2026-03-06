@@ -1,0 +1,47 @@
+pipeline {
+    agent { label 'Salimli' }
+
+    options {
+        buildDiscarder(logRotator(daysToKeepStr: '14', numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Build JAR') {
+            steps {
+                dir('TripPlannerBot') {
+                    sh 'chmod +x gradlew'
+                    sh './gradlew clean shadowJar --no-daemon'
+                }
+            }
+        }
+
+        stage('Docker Build & Deploy') {
+            steps {
+                dir('TripPlannerBot') {
+                    sh 'docker compose up -d --build'
+                }
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                dir('TripPlannerBot') {
+                    sh 'sleep 30'
+                    sh 'docker compose ps'
+                    sh 'docker compose logs --tail=50 app'
+                    sh 'curl -f http://localhost:8080/healthcheck'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            dir('TripPlannerBot') {
+                sh 'docker compose down -v || true'
+            }
+            archiveArtifacts artifacts: 'TripPlannerBot/build/libs/*.jar', fingerprint: true, allowEmptyArchive: true
+        }
+    }
+}
