@@ -1,6 +1,3 @@
-// build.job - only builds JAR, no Docker
-// Use: Pipeline script from SCM, Script Path: TripPlannerBot/Jenkinsfile
-
 pipeline {
     agent { label 'Salimli' }
 
