@@ -26,7 +26,7 @@ services:
       ADMIN_API_KEY: 48B508EC-E715-48F6-AAC6-8218A1720F8D
       SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/tripplanner?retryWrites=true&w=majority&connectTimeoutMS=30000&socketTimeoutMS=30000&serverSelectionTimeoutMS=30000&maxPoolSize=50&minPoolSize=10&maxIdleTimeMS=60000&waitQueueTimeoutMS=30000
       SPRING_DATA_MONGODB_DATABASE: tripplanner
-      TELEGRAM_BOT_TOKEN: 7687419368:AAHRuN00r0_WBAkRVQA65e5q2B7zaU8xgHs
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
     ports:
       - "8080:8080"
     networks:
