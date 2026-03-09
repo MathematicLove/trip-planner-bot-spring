@@ -1,0 +1,29 @@
+# Env and secrets (never commit)
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Build outputs
+build/
+out/
+target/
+
+# Gradle
+.gradle/
+gradle-app.setting
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
