@@ -23,12 +23,12 @@ pipeline {
                 dir('heat') {
                     script {
                         def exists = sh(returnStatus: true, script: """
-                            source /home/ubuntu/openrc.sh 2>/dev/null || source /home/ubuntu/students-openrc.sh 2>/dev/null || true
-                            openstack stack show ${params.STACK_NAME} 2>/dev/null
+                            source /home/ubuntu/openrc.sh
+                            openstack stack show ${params.STACK_NAME} >/dev/null 2>&1
                         """) == 0
                         def cmd = exists ? 'update' : 'create'
                         sh """
-                            source /home/ubuntu/openrc.sh 2>/dev/null || source /home/ubuntu/students-openrc.sh 2>/dev/null || true
+                            source /home/ubuntu/openrc.sh
                             openstack stack ${cmd} -t tripplanner-stack.yaml \
                               --parameter image=${params.IMAGE} \
                               --parameter flavor=${params.FLAVOR} \
@@ -43,12 +43,14 @@ pipeline {
         stage('Wait for Stack') {
             steps {
                 sh """
-                    source /home/ubuntu/openrc.sh 2>/dev/null || source /home/ubuntu/students-openrc.sh 2>/dev/null || true
+                    source /home/ubuntu/openrc.sh
                     openstack stack show ${params.STACK_NAME} -f json
                 """
                 sh """
-                    source /home/ubuntu/openrc.sh 2>/dev/null || source /home/ubuntu/students-openrc.sh 2>/dev/null || true
-                    until openstack stack show ${params.STACK_NAME} -f value -c stack_status 2>/dev/null | grep -qE 'CREATE_COMPLETE|UPDATE_COMPLETE'; do sleep 10; done || true
+                    source /home/ubuntu/openrc.sh
+                    until openstack stack show ${params.STACK_NAME} -f value -c stack_status 2>/dev/null | grep -qE 'CREATE_COMPLETE|UPDATE_COMPLETE'; do
+                      sleep 10
+                    done || true
                 """
             }
         }
