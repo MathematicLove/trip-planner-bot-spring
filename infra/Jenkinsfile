@@ -10,11 +10,11 @@ pipeline {
     }
 
     parameters {
-        string(name: 'STACK_NAME', defaultValue: 'tripplanner-stack', description: 'Heat stack name')
+        string(name: 'STACK_NAME', defaultValue: 'tripplanner-Salimli-vm', description: 'Heat stack name')
         string(name: 'IMAGE', defaultValue: 'ubuntu-22.04', description: 'Glance image')
         string(name: 'FLAVOR', defaultValue: 'm1.small', description: 'Nova flavor')
-        string(name: 'KEY_NAME', defaultValue: '', description: 'SSH key pair name')
-        string(name: 'NETWORK', defaultValue: '', description: 'Network name or ID')
+        string(name: 'KEY_NAME', defaultValue: 'Salimli', description: 'SSH key pair name')
+        string(name: 'NETWORK', defaultValue: 'students-net', description: 'Network name or ID')
     }
 
     stages {
@@ -22,9 +22,13 @@ pipeline {
             steps {
                 dir('heat') {
                     script {
-                        def exists = sh(returnStatus: true, script: "openstack stack show ${params.STACK_NAME} 2>/dev/null") == 0
+                        def exists = sh(returnStatus: true, script: """
+                            source /home/ubuntu/openrc.sh 2>/dev/null || source /home/ubuntu/students-openrc.sh 2>/dev/null || true
+                            openstack stack show ${params.STACK_NAME} 2>/dev/null
+                        """) == 0
                         def cmd = exists ? 'update' : 'create'
                         sh """
+                            source /home/ubuntu/openrc.sh 2>/dev/null || source /home/ubuntu/students-openrc.sh 2>/dev/null || true
                             openstack stack ${cmd} -t tripplanner-stack.yaml \
                               --parameter image=${params.IMAGE} \
                               --parameter flavor=${params.FLAVOR} \
@@ -38,8 +42,14 @@ pipeline {
         }
         stage('Wait for Stack') {
             steps {
-                sh "openstack stack show ${params.STACK_NAME} -f json"
-                sh "until openstack stack show ${params.STACK_NAME} -f value -c stack_status | grep -q COMPLETE; do sleep 10; done || true"
+                sh """
+                    source /home/ubuntu/openrc.sh 2>/dev/null || source /home/ubuntu/students-openrc.sh 2>/dev/null || true
+                    openstack stack show ${params.STACK_NAME} -f json
+                """
+                sh """
+                    source /home/ubuntu/openrc.sh 2>/dev/null || source /home/ubuntu/students-openrc.sh 2>/dev/null || true
+                    until openstack stack show ${params.STACK_NAME} -f value -c stack_status 2>/dev/null | grep -qE 'CREATE_COMPLETE|UPDATE_COMPLETE'; do sleep 10; done || true
+                """
             }
         }
     }
