@@ -11,7 +11,7 @@ pipeline {
 
     parameters {
         string(name: 'STACK_NAME', defaultValue: 'tripplanner-Salimli-vm', description: 'Heat stack name')
-        string(name: 'IMAGE', defaultValue: 'ubuntu-22.04', description: 'Glance image')
+        string(name: 'IMAGE', defaultValue: 'ununtu-22.04', description: 'Glance image')
         string(name: 'FLAVOR', defaultValue: 'm1.small', description: 'Nova flavor')
         string(name: 'KEY_NAME', defaultValue: 'Salimli', description: 'SSH key pair name')
         string(name: 'NETWORK', defaultValue: 'students-net', description: 'Network name or ID')
@@ -20,23 +20,21 @@ pipeline {
     stages {
         stage('Deploy Heat Stack') {
             steps {
-                dir('heat') {
-                    script {
-                        def exists = sh(returnStatus: true, script: """
-                            . /home/ubuntu/openrc.sh
-                            openstack stack show ${params.STACK_NAME} >/dev/null 2>&1
-                        """) == 0
-                        def cmd = exists ? 'update' : 'create'
-                        sh """
-                            . /home/ubuntu/openrc.sh
-                            openstack stack ${cmd} -t tripplanner-stack.yaml \
-                              --parameter image=${params.IMAGE} \
-                              --parameter flavor=${params.FLAVOR} \
-                              --parameter key_name=${params.KEY_NAME} \
-                              --parameter network=${params.NETWORK} \
-                              ${params.STACK_NAME}
-                        """
-                    }
+                script {
+                    def exists = sh(returnStatus: true, script: """
+                        . /home/ubuntu/openrc.sh
+                        openstack stack show ${params.STACK_NAME} >/dev/null 2>&1
+                    """) == 0
+                    def cmd = exists ? 'update' : 'create'
+                    sh """
+                        . /home/ubuntu/openrc.sh
+                        openstack stack ${cmd} -t infra/heat/tripplanner-stack.yaml \
+                          --parameter image=${params.IMAGE} \
+                          --parameter flavor=${params.FLAVOR} \
+                          --parameter key_name=${params.KEY_NAME} \
+                          --parameter network=${params.NETWORK} \
+                          ${params.STACK_NAME}
+                    """
                 }
             }
         }
