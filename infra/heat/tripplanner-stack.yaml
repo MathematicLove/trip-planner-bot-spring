@@ -5,7 +5,7 @@ parameters:
   image:
     type: string
     description: Glance image name or ID (e.g. Ubuntu 22.04)
-    default: ubuntu-22.04
+    default: ununtu-22.04
   flavor:
     type: string
     description: Nova flavor for instance

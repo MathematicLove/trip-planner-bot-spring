@@ -14,7 +14,7 @@ pipeline {
         string(name: 'IMAGE', defaultValue: 'ununtu-22.04', description: 'Glance image')
         string(name: 'FLAVOR', defaultValue: 'm1.small', description: 'Nova flavor')
         string(name: 'KEY_NAME', defaultValue: 'Salimli', description: 'SSH key pair name')
-        string(name: 'NETWORK', defaultValue: 'students-net', description: 'Network name or ID')
+        string(name: 'NETWORK', defaultValue: 'sutdents-net', description: 'Network name or ID')
     }
 
     stages {
