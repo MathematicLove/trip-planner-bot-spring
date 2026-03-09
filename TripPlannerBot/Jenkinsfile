@@ -1,3 +1,6 @@
+// build.job - only builds JAR, no Docker
+// Use: Pipeline script from SCM, Script Path: TripPlannerBot/Jenkinsfile
+
 pipeline {
     agent { label 'Salimli' }
 
@@ -15,32 +18,10 @@ pipeline {
                 }
             }
         }
-
-        stage('Docker Build & Deploy') {
-            steps {
-                dir('TripPlannerBot') {
-                    sh 'docker compose up -d --build'
-                }
-            }
-        }
-
-        stage('Health Check') {
-            steps {
-                dir('TripPlannerBot') {
-                    sh 'sleep 30'
-                    sh 'docker compose ps'
-                    sh 'docker compose logs --tail=50 app'
-                    sh 'curl -f http://localhost:8080/healthcheck'
-                }
-            }
-        }
     }
 
     post {
         always {
-            dir('TripPlannerBot') {
-                sh 'docker compose down -v || true'
-            }
             archiveArtifacts artifacts: 'TripPlannerBot/build/libs/*.jar', fingerprint: true, allowEmptyArchive: true
         }
     }

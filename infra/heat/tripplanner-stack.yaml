@@ -1,0 +1,85 @@
+heat_template_version: 2015-10-15
+description: TripPlanner Bot VM on OpenStack. Resources are deleted when stack is deleted.
+
+parameters:
+  image:
+    type: string
+    description: Glance image name or ID (e.g. Ubuntu 22.04)
+    default: ubuntu-22.04
+  flavor:
+    type: string
+    description: Nova flavor for instance
+    default: m1.small
+  key_name:
+    type: string
+    description: SSH key pair name for VM access
+  network:
+    type: string
+    description: Network name or ID for the instance
+  # From application.properties (for reference / future use)
+  spring_data_mongodb_uri:
+    type: string
+    description: MongoDB connection 
+    default: "mongodb://localhost:27017/tripplanner?retryWrites=true&w=majority"
+  spring_data_mongodb_database:
+    type: string
+    description: MongoDB database name
+    default: tripplanner
+resources:
+  app_secgroup:
+    type: OS::Neutron::SecurityGroup
+    deletion_policy: Delete
+    properties:
+      name: tripplanner-app-sg
+      description: SSH and TripPlanner app ports
+      rules:
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+          remote_ip_prefix: 0.0.0.0/0
+        - protocol: tcp
+          port_range_min: 8080
+          port_range_max: 8080
+          remote_ip_prefix: 0.0.0.0/0
+        - protocol: tcp
+          port_range_min: 27017
+          port_range_max: 27017
+          remote_ip_prefix: 0.0.0.0/0
+
+  server_port:
+    type: OS::Neutron::Port
+    deletion_policy: Delete
+    properties:
+      network: { get_param: network }
+      security_groups:
+        - { get_resource: app_secgroup }
+
+  vm:
+    type: OS::Nova::Server
+    deletion_policy: Delete
+    properties:
+      name: tripplanner-Salimli-vm
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      key_name: { get_param: key_name }
+      networks:
+        - port: { get_resource: server_port }
+      user_data: |
+        #cloud-config
+        package_update: true
+        package_upgrade: true
+        packages:
+          - openjdk-21-jdk
+          - mongodb
+          - curl
+
+outputs:
+  instance_id:
+    description: Instance ID
+    value: { get_resource: vm }
+  instance_name:
+    description: Instance name
+    value: { get_attr: [ vm, name ] }
+  instance_ip:
+    description: IP of the instance
+    value: { get_attr: [ server_port, fixed_ips, 0, ip_address ] }

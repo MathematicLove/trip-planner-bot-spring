@@ -1,0 +1,55 @@
+// deploy.job - Copy Artifact + SCP + systemctl restart
+// Configure as Pipeline with "Pipeline script from SCM" OR as Freestyle with:
+//   - Build: Copy artifacts from build.job
+//   - Build: Execute shell (this script)
+//
+// Requires: VM_IP parameter or from Heat; SSH key in Jenkins credentials
+
+pipeline {
+    agent any
+
+    options {
+        buildDiscarder(logRotator(daysToKeepStr: '14', numToKeepStr: '10'))
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        string(name: 'VM_IP', defaultValue: '', description: 'IP of VM (or leave empty to get from Heat stack)')
+        string(name: 'STACK_NAME', defaultValue: 'tripplanner-stack', description: 'Heat stack name for IP lookup')
+        string(name: 'SSH_USER', defaultValue: 'ubuntu', description: 'SSH user on VM')
+        string(name: 'BUILD_JOB', defaultValue: 'job_salimli', description: 'Upstream build job name')
+    }
+
+    stages {
+        stage('Copy Artifact') {
+            steps {
+                copyArtifacts(
+                    filter: 'TripPlannerBot/build/libs/*.jar',
+                    projectName: "${params.BUILD_JOB}",
+                    selector: specific('lastSuccessfulBuild')
+                )
+            }
+        }
+
+        stage('Deploy to VM') {
+            steps {
+                script {
+                    def ip = params.VM_IP?.trim()
+                    if (!ip) {
+                        ip = sh(script: "openstack stack output show ${params.STACK_NAME} instance_ip -f value 2>/dev/null || true", returnStdout: true).trim()
+                    }
+                    if (!ip) {
+                        error('VM_IP is empty and could not get from Heat stack. Set VM_IP parameter or run infra.job first.')
+                    }
+                    def jarPath = 'TripPlannerBot/build/libs/TGTripBot-0.0.1-SNAPSHOT-all.jar'
+                    sshagent(credentials: ['tripplanner-vm-ssh']) {
+                        sh """
+                            scp -o StrictHostKeyChecking=no ${jarPath} ${params.SSH_USER}@${ip}:/tmp/app.jar
+                            ssh -o StrictHostKeyChecking=no ${params.SSH_USER}@${ip} 'sudo mv /tmp/app.jar /opt/tripplanner/app.jar && sudo chown tripplanner:tripplanner /opt/tripplanner/app.jar && sudo systemctl restart tripplanner'
+                        """
+                    }
+                }
+            }
+        }
+    }
+}

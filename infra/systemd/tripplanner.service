@@ -1,0 +1,18 @@
+[Unit]
+Description=TripPlanner Telegram Bot
+After=network.target mongodb.service
+
+[Service]
+Type=simple
+User=tripplanner
+Group=tripplanner
+WorkingDirectory=/opt/tripplanner
+
+EnvironmentFile=/opt/tripplanner/env
+ExecStart=/usr/bin/java -jar /opt/tripplanner/app.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
