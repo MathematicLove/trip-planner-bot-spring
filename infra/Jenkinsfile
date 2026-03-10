@@ -1,6 +1,3 @@
-// infra.job - deploys Heat stack (creates VM on OpenStack)
-// Requires: openstack CLI, credentials in env
-
 pipeline {
     agent { label 'Salimli' }
 

@@ -1,6 +1,7 @@
 [Unit]
 Description=TripPlanner Telegram Bot
-After=network.target mongodb.service
+After=network-online.target mongodb.service
+Wants=network-online.target
 
 [Service]
 Type=simple
@@ -8,11 +9,23 @@ User=tripplanner
 Group=tripplanner
 WorkingDirectory=/opt/tripplanner
 
-EnvironmentFile=/opt/tripplanner/env
-ExecStart=/usr/bin/java -jar /opt/tripplanner/app.jar
+# Переменные из файла (TELEGRAM_BOT_TOKEN, SPRING_DATA_MONGODB_URI, etc.)
+EnvironmentFile=-/opt/tripplanner/env
+
+ExecStart=/usr/bin/java -Xmx512m -Dfile.encoding=UTF-8 -jar /opt/tripplanner/app.jar
 SuccessExitStatus=143
 Restart=always
 RestartSec=5
+TimeoutStartSec=120
+
+# Логи в journald (journalctl -u tripplanner)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tripplanner
+
+# Защита: не перезапускать слишком часто
+StartLimitIntervalSec=300
+StartLimitBurst=5
 
 [Install]
 WantedBy=multi-user.target

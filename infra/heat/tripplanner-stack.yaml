@@ -4,7 +4,7 @@ description: TripPlanner Bot VM on OpenStack. Resources are deleted when stack i
 parameters:
   image:
     type: string
-    description: Glance image name or ID (e.g. Ubuntu 22.04)
+    description: image name
     default: ununtu-22.04
   flavor:
     type: string
@@ -16,7 +16,6 @@ parameters:
   network:
     type: string
     description: Network name or ID for the instance
-  # From application.properties (for reference / future use)
   spring_data_mongodb_uri:
     type: string
     description: MongoDB connection 

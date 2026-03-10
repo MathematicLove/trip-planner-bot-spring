@@ -1,12 +1,9 @@
-// deploy.job - Copy Artifact + SCP + systemctl restart
-// Configure as Pipeline with "Pipeline script from SCM" OR as Freestyle with:
-//   - Build: Copy artifacts from build.job
-//   - Build: Execute shell (this script)
-//
-// Requires: VM_IP parameter or from Heat; SSH key in Jenkins credentials
+// deploy.job — копирует JAR, деплоит на VM через systemctl (без nohup)
+// Предусловие: на VM ручками установлен systemd-сервис tripplanner
+// Use: Pipeline script from SCM, Script Path: infra/Jenkinsfile.deploy
 
 pipeline {
-    agent any
+    agent { label 'Salimli' }
 
     options {
         buildDiscarder(logRotator(daysToKeepStr: '14', numToKeepStr: '10'))
@@ -15,7 +12,7 @@ pipeline {
 
     parameters {
         string(name: 'VM_IP', defaultValue: '', description: 'IP of VM (or leave empty to get from Heat stack)')
-        string(name: 'STACK_NAME', defaultValue: 'tripplanner-stack', description: 'Heat stack name for IP lookup')
+        string(name: 'STACK_NAME', defaultValue: 'tripplanner-Salimli-vm', description: 'Heat stack name for IP lookup')
         string(name: 'SSH_USER', defaultValue: 'ubuntu', description: 'SSH user on VM')
         string(name: 'BUILD_JOB', defaultValue: 'job_salimli', description: 'Upstream build job name')
     }
@@ -36,12 +33,19 @@ pipeline {
                 script {
                     def ip = params.VM_IP?.trim()
                     if (!ip) {
-                        ip = sh(script: "openstack stack output show ${params.STACK_NAME} instance_ip -f value 2>/dev/null || true", returnStdout: true).trim()
+                        ip = sh(script: """
+                            . /home/ubuntu/openrc.sh 2>/dev/null || true
+                            openstack stack output show ${params.STACK_NAME} instance_ip -f value 2>/dev/null || true
+                        """, returnStdout: true).trim()
                     }
                     if (!ip) {
-                        error('VM_IP is empty and could not get from Heat stack. Set VM_IP parameter or run infra.job first.')
+                        error('VM_IP is empty and could not get from Heat stack. Set VM_IP parameter or run infra job first.')
                     }
-                    def jarPath = 'TripPlannerBot/build/libs/TGTripBot-0.0.1-SNAPSHOT-all.jar'
+                    def jarGlob = 'TripPlannerBot/build/libs/*.jar'
+                    def jarPath = sh(script: "ls ${jarGlob} | head -1", returnStdout: true).trim()
+                    if (!jarPath?.trim()) {
+                        error("No JAR found: ${jarGlob}")
+                    }
                     sshagent(credentials: ['tripplanner-vm-ssh']) {
                         sh """
                             scp -o StrictHostKeyChecking=no ${jarPath} ${params.SSH_USER}@${ip}:/tmp/app.jar
