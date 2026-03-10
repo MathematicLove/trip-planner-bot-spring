@@ -2,7 +2,7 @@
 // Requires: openstack CLI, credentials in env
 
 pipeline {
-    agent any
+    agent { label 'Salimli' }
 
     options {
         buildDiscarder(logRotator(daysToKeepStr: '14', numToKeepStr: '10'))
