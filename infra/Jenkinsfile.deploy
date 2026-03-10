@@ -15,6 +15,7 @@ pipeline {
         string(name: 'STACK_NAME', defaultValue: 'tripplanner-Salimli-vm', description: 'Heat stack name for IP lookup')
         string(name: 'SSH_USER', defaultValue: 'ubuntu', description: 'SSH user on VM')
         string(name: 'BUILD_JOB', defaultValue: 'job_salimli', description: 'Upstream build job name')
+        string(name: 'SSH_CREDENTIAL_ID', defaultValue: 'tripplanner-vm-ssh', description: 'Jenkins credential ID for SSH to VM')
     }
 
     stages {
@@ -46,7 +47,7 @@ pipeline {
                     if (!jarPath?.trim()) {
                         error("No JAR found: ${jarGlob}")
                     }
-                    sshagent(credentials: ['tripplanner-vm-ssh']) {
+                    sshagent(credentials: ["${params.SSH_CREDENTIAL_ID}"]) {
                         sh """
                             scp -o StrictHostKeyChecking=no ${jarPath} ${params.SSH_USER}@${ip}:/tmp/app.jar
                             ssh -o StrictHostKeyChecking=no ${params.SSH_USER}@${ip} 'sudo mv /tmp/app.jar /opt/tripplanner/app.jar && sudo chown tripplanner:tripplanner /opt/tripplanner/app.jar && sudo systemctl restart tripplanner'
