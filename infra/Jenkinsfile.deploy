@@ -14,8 +14,8 @@ pipeline {
         string(name: 'VM_IP', defaultValue: '', description: 'IP of VM (or leave empty to get from Heat stack)')
         string(name: 'STACK_NAME', defaultValue: 'tripplanner-Salimli-vm', description: 'Heat stack name for IP lookup')
         string(name: 'SSH_USER', defaultValue: 'ubuntu', description: 'SSH user on VM')
-        string(name: 'BUILD_JOB', defaultValue: 'job_salimli', description: 'Upstream build job name')
-        string(name: 'SSH_CREDENTIAL_ID', defaultValue: 'tripplanner-vm-ssh', description: 'Jenkins credential ID for SSH to VM')
+        string(name: 'BUILD_JOB', defaultValue: 'deploy_salimli', description: 'Upstream build job name')
+        string(name: 'SSH_CREDENTIAL_ID', defaultValue: 'tripplanner-vm', description: 'Jenkins credential ID for SSH to VM')
     }
 
     stages {
