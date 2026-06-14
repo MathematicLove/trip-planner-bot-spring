@@ -9,6 +9,11 @@ build/
 out/
 target/
 
+*.terraform.lock.hcl
+*CHANGELOG.md
+*registry.terraform.io
+*test-module.png
+
 # Gradle
 .gradle/
 gradle-app.setting
