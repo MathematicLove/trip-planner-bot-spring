@@ -2,6 +2,11 @@
 
 - [Проверить бота](https://t.me/TripPlannerBot_bot).
 
+<p align="center">
+  <img src="https://mathematiclove.github.io/my-cv/content/projects/TRIP_PLANNER/EXAMPLE_1.PNG" width="300" height="500" alt="Fig. 1: Bot example">
+  <img src="https://mathematiclove.github.io/my-cv/content/projects/TRIP_PLANNER/EXAMPLE_2.PNG" width="300" height="500" alt="Fig. 2: Bot example">
+</p>
+
 Telegram бот для планирования путешествий с административной панелью.
 ## Инфраструктура 
 - Создание инстенса - Terraform;
@@ -12,6 +17,7 @@ Telegram бот для планирования путешествий с адм
 
 ## K8s
 - см. ./infra/kubernetes/
+  
 ## API Endpoints
 
 ### Административные эндпоинты
@@ -91,5 +97,3 @@ docker compose run app
 - Михалец Мартин:
    - History 
    - Admin
-
-Проект разработан командой 8 в рамках курса по Java-разработке.
